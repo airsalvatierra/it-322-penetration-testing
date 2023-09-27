@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Check for the correct number of command line arguments
+if ! (command -v nmap &>/dev/null); then
+  echo "WARNING: nmap should be installed on the operating system, ex: sudo apt install nmap"
+  exit 1
+fi
+
 if [ "$#" -ne 1 ]; then
   echo "Enter a valid IP with or without subnet"
   exit 1
