@@ -23,6 +23,8 @@ if ! ([[ $target =~ $valid_ip_subnet_regex ]] || [[ $target =~ $valid_ip_regex ]
   exit 1
 fi
 
+MAX_NUM_OF_PORTS=1024
+
 # Function to scan ports for a subnet
 is_port_open() {
   local ip="$1"
@@ -39,24 +41,18 @@ scan_ip_with_or_without_subnet() {
 
   if [[ $target != *"/"* ]]; then
     echo "Scanning ip: $target"
-    for port in {1..65535}; do
-      is_port_open "$ip" "$port"
+    for ((port = 1; port <= MAX_NUM_OF_PORTS; port++)); do
+      is_port_open "$target" "$port"
     done
   else
-    # Extract network and mask
-    echo "Scanning subnet: $target"
-    network=$(echo "$target" | cut -d '/' -f1)
-    mask=$(echo "$target" | cut -d '/' -f2)
-
-    # Calculate the number of possible hosts
-    num_hosts=$((2**(32 - mask)))
-
-    # Loop through IP addresses in the subnet
-    for (( i=1; i<$num_hosts; i++ )); do
-      ip="$network.$i"
-      for port in {1..65535}; do
-        is_port_open "$ip" "$port"
-      done
+    for ip in $(nmap -sL -n $target | grep 'Nmap scan report' | awk '{print $5}'); do
+      if [[ $IP != *".255" && $ip != *".0" ]]; then
+        echo "Scanning ports for $ip..."
+        for ((port = 1; port <= MAX_NUM_OF_PORTS; port++)); do
+          echo "$ip" "$port"
+          is_port_open "$ip" "$port"
+        done
+      fi
     done
   fi
 
