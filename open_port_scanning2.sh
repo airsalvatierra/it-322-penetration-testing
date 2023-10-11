@@ -46,7 +46,7 @@ scan_ip_with_or_without_subnet() {
     done
   else
     echo "Scanning subnet: $target"
-    for ip in $(nmap -sL -n $target | grep 'Nmap scan report' | awk '{print $5}'); do
+    for ip in $(nmap -sn $target | grep 'report' | awk '{print $5}' ; do
       if [[ $IP != *".255" && $ip != *".0" ]]; then
         for ((port = 1; port <= MAX_NUM_OF_PORTS; port++)); do
           is_port_open "$ip" "$port"
